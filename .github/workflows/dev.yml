@@ -1,0 +1,53 @@
+name: Create Lambda Zip Archive and Upload to Development Environment
+
+on:
+  push:
+    branches: ['development']
+
+jobs:
+  build-and-push-zip-dev:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      ZIP_ARCHIVE:  ${{ github.sha }}.zip
+      NPM_TOKEN:    ${{ secrets.NPM_TOKEN }}
+      ZIP_BUCKET:   cicd.development.consejosano.com
+      APP_PATH_DEV: CcpLogDnaCloudwatch/builds
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: us-west-2
+    
+      - name: Create Zip Archive
+        run: |
+          zip -r $ZIP_ARCHIVE . -x "README.md" "." "node_modules/*" "pa"
+
+      - name: Upload Zip to S3
+        run: |
+          aws s3 cp $ZIP_ARCHIVE s3://$ZIP_BUCKET/$APP_PATH_DEV/${{ github.sha }}
+
+      - name: Dispatch To Infra
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT }}
+          event-type: from-ccp-logdna-cloudwatch
+          repository: ${{ secrets.REPO }}
+          client-payload: '{"sha": "${{ github.sha }}", "project": "CcpLogDnaCloudwatch", "branch": "development" }'
