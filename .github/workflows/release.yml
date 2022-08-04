@@ -14,7 +14,7 @@ jobs:
       ZIP_ARCHIVE:  ${{ github.sha }}.zip
       NPM_TOKEN:    ${{ secrets.NPM_TOKEN }}
       ZIP_BUCKET:   cicd.development.consejosano.com
-      APP_PATH_DEV: CcpLogDnaCloudwatch/builds
+      APP_PATH_DEV: CcpLogDnaCloudwatch/releases
       APP_TAG:      ${{ github.event.release.tag_name }}
       SONAR_URL:    ${{ secrets.SONAR_URL }}
       SONAR_TOKEN:  ${{ secrets.SONAR_TOKEN }}
