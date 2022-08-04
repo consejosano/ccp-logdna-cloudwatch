@@ -1,6 +1,3 @@
-# No Package Lock
-package-lock.json
-
 # No Temporary File
 *.swp
 .DS_Store
@@ -15,3 +12,5 @@ node_modules
 data
 generateData.js
 .nyc*
+
+.scannerwork/

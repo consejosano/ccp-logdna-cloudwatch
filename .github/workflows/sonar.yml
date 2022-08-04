@@ -1,0 +1,35 @@
+name: Run SonarQube
+on:
+  pull_request:
+    branches:
+      - development
+    types: [opened]
+
+jobs:
+  run_static_analysis:
+    name: Run SonarQube Static Analysis
+    runs-on: ubuntu-latest
+    env:
+      SONAR_URL: ${{ secrets.SONAR_URL }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Cache Dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.OS }}-node-
+          ${{ runner.OS }}-
+
+    - name: Install and Run Sonarqube
+      run: |
+        npm install -D sonarqube-scanner
+        node sonar.js
+    
